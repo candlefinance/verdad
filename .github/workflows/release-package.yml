@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node.js environment, including NPM
         uses: actions/setup-node@v3.0.0
         with:
-          node-version: 16.x
+          node-version: 16.13.0
           # Setting this explicitly causes an .npmrc file to be created
           # that references the NODE_AUTH_TOKEN env var defined below
           registry-url: 'https://registry.npmjs.org'
