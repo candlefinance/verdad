@@ -1,6 +1,6 @@
 {
   "name": "verdad",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Define a single source of truth for your API and persistence layer, and use Verdad's extensions to a) call it, b) implement it, and c) deploy it.",
   "main": "index.js",
   "scripts": {
