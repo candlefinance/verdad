@@ -34,6 +34,8 @@ jobs:
 
       - name: Publish NPM package
         run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Push new commits to main
         uses: CasperWA/push-protected@v2.10.0
