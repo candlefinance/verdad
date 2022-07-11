@@ -27,7 +27,7 @@ jobs:
           node-version: 16.x
 
       - name: Install NPM dependencies
-        run: npm run install-dependencies
+        run: npm install
 
       - name: Increment package version and commit change
         run: npm run increment-version
