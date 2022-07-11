@@ -1,0 +1,42 @@
+name: Create Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches: 
+      - main
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set commit author
+        run: |
+          git config user.name 'Candle Finance CI'
+          git config user.email 'contact@trycandle.com'
+      
+      - name: Setup Node.js environment, including NPM
+        uses: actions/setup-node@v3.0.0
+        with:
+          node-version: 16.x
+
+      - name: Install NPM dependencies
+        run: npm run install-dependencies
+
+      - name: Increment package version and commit change
+        run: npm run increment-version
+
+      - name: Publish NPM package
+        run: npm publish
+
+      - name: Push new commits to main
+        uses: CasperWA/push-protected@v2.10.0
+        with:
+          token: ${{ secrets.ADMIN_PAT }}
+          tags: true
