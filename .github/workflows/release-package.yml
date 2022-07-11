@@ -40,6 +40,9 @@ jobs:
         with:
           token: ${{ secrets.ADMIN_PAT }}
           tags: true
+        
+      - name: Debug
+        run: cat ~/.npmrc
 
       - name: Publish NPM package
         run: npm publish
