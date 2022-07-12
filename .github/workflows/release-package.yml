@@ -42,7 +42,7 @@ jobs:
           tags: true
         
       - name: Debug
-        run: cat ${{ env.RUNNER_TEMP }}/.npmrc
+        run: cat ${{ env.NPM_CONFIG_USERCONFIG }}/.npmrc
 
       - name: Publish NPM package
         run: npm publish
