@@ -9,9 +9,6 @@
     "increment-version": "standard-version"
   },
   "repository": "git://github.com/candlefinance/verdad.git",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "author": "Candle Finance Inc.",
   "license": "MIT",
   "bugs": {
