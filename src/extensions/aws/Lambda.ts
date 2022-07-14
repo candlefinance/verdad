@@ -96,10 +96,10 @@ export function implement<
   const verdadMain = async (apiGatewayEvent: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       const Wrapper = t.type({
-        requestBody: method.requestBodyType.runtimeType,
-        pathParameters: method.pathParametersType.runtimeType,
-        queryParameters: method.queryParametersType.runtimeType,
-        headerParameters: method.headerParametersType.runtimeType
+        requestBody: method.requestBodyType,
+        pathParameters: method.pathParametersType,
+        queryParameters: method.queryParametersType,
+        headerParameters: method.headerParametersType
       })
 
       return pipe(

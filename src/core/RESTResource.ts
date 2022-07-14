@@ -1,7 +1,8 @@
 import _ from 'lodash'
+
 import type * as t from 'io-ts'
 
-import type { Codable, Runtime } from './Utilities'
+import type { Codable } from './Utilities'
 
 export namespace RESTResource {
 
@@ -13,7 +14,7 @@ export namespace RESTResource {
 
         export function stringify<Path, PathRaw extends StringRaw<Path>>(
             path: Qualified<Path>,
-            substitutions?: { parameters: Path, encoder: Runtime<Path, PathRaw> }
+            substitutions?: { parameters: Path, encoder: t.Type<Path, PathRaw> }
         ): string {
             const pathComponents = _(path).map((component) => {
                 if (typeof component === 'string') {
@@ -35,19 +36,7 @@ export namespace RESTResource {
     }
 
     export type StringRaw<Type> = { [Property in keyof Type]: string }
-
-    export type Named<Type, TypeRaw> = {
-        name: string,
-        runtimeType: Runtime<Type, TypeRaw>
-    }
-
-    export function namedType<Type extends t.Any>(type: Type) {
-        return {
-          name: type.name,
-          runtimeType: type
-        }
-      }
-
+    
     export namespace Method {
 
         export type Name = 'get' | 'post' | 'put' | 'patch' | 'delete'
@@ -111,19 +100,19 @@ export namespace RESTResource {
             name: Name
 
             // Request Models
-            pathParametersType: Named<Path, PathRaw> // FIXME: Enforce that all path params are defined in path
-            queryParametersType: Named<Query, QueryRaw>
-            headerParametersType: Named<Header, HeaderRaw>
-            requestBodyType: Named<Request, RequestRaw>,
+            pathParametersType: t.Type<Path, PathRaw> // FIXME: Enforce that all path params are defined in path
+            queryParametersType: t.Type<Query, QueryRaw>
+            headerParametersType: t.Type<Header, HeaderRaw>
+            requestBodyType: t.Type<Request, RequestRaw>,
 
             // Response Models
             successResponse: {
                 statusCodes: SuccessResponseStatusCodes[],
-                bodyType: Named<SuccessResponse, SuccessResponseRaw>
+                bodyType: t.Type<SuccessResponse, SuccessResponseRaw>
             },
             errorResponse: {
                 statusCodes: ErrorResponseStatusCodes[],
-                bodyType: Named<ErrorResponse, ErrorResponseRaw>
+                bodyType: t.Type<ErrorResponse, ErrorResponseRaw>
             },
         }
     }

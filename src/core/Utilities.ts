@@ -8,7 +8,7 @@ import * as E from 'fp-ts/Either'
 import * as uuid from 'uuid'
 import * as util from 'util'
 
-import { flow, pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/function";
 import { BooleanFromString, JsonRecord, NumberFromString, UUID } from "io-ts-types";
 
 // FIXME: Make Utilities namespace
@@ -444,10 +444,6 @@ export function assertRight<Right>(description: string, either: E.Either<any, Ri
 }
 
 export const makeNullable = <T extends t.Any>(type: T) => t.union([type, t.null])
-
-// --- Runtime type
-
-export type Runtime<Type, TypeCo> = t.Type<Type, TypeCo, unknown>
 
 // --- Codable wrapper class
 

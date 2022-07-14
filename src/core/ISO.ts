@@ -1,8 +1,8 @@
 import * as t from "io-ts";
+import * as E from 'fp-ts/Either'
 
-import { pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/function";
 import { Interval, Duration, DateTime, ToISOTimeOptions, DateTimeOptions } from "luxon";
-import { chain } from "fp-ts/lib/Either";
 
 export namespace ISO {
 
@@ -21,7 +21,7 @@ export namespace ISO {
         isType,
         (iso, context) => pipe(
           t.string.validate(iso, context),
-          chain((isoString) => t.success(fromISO(isoString)))
+          E.chain((isoString) => t.success(fromISO(isoString)))
         ),
         luxonValue => luxonValue.toISO()
       )

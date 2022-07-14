@@ -1,5 +1,6 @@
+import type * as t from 'io-ts'
+
 import type { AttributeValue } from "@aws-sdk/client-dynamodb"
-import type { Runtime } from "./Utilities"
 
 export namespace VerdadNoSQLDB {
 
@@ -27,7 +28,7 @@ export namespace VerdadNoSQLDB {
     PrimaryKey extends string & keyof Item & keyof ItemRaw,
     SecondaryKeys extends string & keyof Item & keyof ItemRaw
     > = {
-      runtimeType: Runtime<Item, ItemRaw>
+      runtimeType: t.Type<Item, ItemRaw>
       primaryKey: PrimaryKey
       secondaryKeys?: SecondaryKeys[]
     }
@@ -38,7 +39,7 @@ export namespace VerdadNoSQLDB {
     PrimaryKey extends string & keyof Item & keyof ItemRaw,
     SecondaryKeys extends string & keyof Item & keyof ItemRaw
   >(input: {
-    runtimeType: Runtime<Item, ItemRaw>
+    runtimeType: t.Type<Item, ItemRaw>
     primaryKey: PrimaryKey,
     secondaryKeys?: SecondaryKeys[] // FIXME: Block use of empty []
   }): TableDefinition<Item, ItemRaw, PrimaryKey, SecondaryKeys> {

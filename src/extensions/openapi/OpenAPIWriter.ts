@@ -70,16 +70,16 @@ export namespace OpenAPIWriter {
 
     function createOpenAPIDocument(api: VerdadRESTAPI.Definition<any, VerdadRESTAPI.Servers>): OpenAPI.Compiletime<'Document'> {
       var methods: UniqueMethod[] = []
-      var models: RESTResource.Named<any, any>[] = []
+      var models: t.Type<any, any>[] = []
 
       api.forEachMethod((method) => {
 
         const makeOperation = (): OpenAPI.Compiletime<'Operation'> => {
           return {
             parameters: [
-              explodedParametersSafe(method.pathParametersType.runtimeType, 'path'),
-              explodedParametersSafe(method.queryParametersType.runtimeType, 'query'),
-              explodedParametersSafe(method.headerParametersType.runtimeType, 'header'),
+              explodedParametersSafe(method.pathParametersType, 'path'),
+              explodedParametersSafe(method.queryParametersType, 'query'),
+              explodedParametersSafe(method.headerParametersType, 'header'),
             ].flatMap(identity),
             requestBody: {
               content: {
@@ -154,7 +154,7 @@ export namespace OpenAPIWriter {
 
       const schemas = _(models)
         .keyBy((namedSchema) => namedSchema.name)
-        .mapValues((namedSchema) => namedSchema.runtimeType)
+        .mapValues((namedSchema) => namedSchema)
         .mapValues(schemaForTypeSafe)
         .value()
 

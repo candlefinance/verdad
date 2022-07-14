@@ -100,10 +100,10 @@ export function makeRTKAPI<
         >({
           query: call => {
 
-            const body = method.requestBodyType.runtimeType.encode(call.body)
+            const body = method.requestBodyType.encode(call.body)
             const path = RESTResource.Path.stringify(method.path, {
               parameters: call.pathParameters,
-              encoder: method.pathParametersType.runtimeType,
+              encoder: method.pathParametersType,
             })
 
             input.logger?.log('debug', {}, {
@@ -117,8 +117,8 @@ export function makeRTKAPI<
               url: path,
               // FIXME: Not sure if necessary to upper-case it
               method: method.name.toUpperCase(),
-              params: method.queryParametersType.runtimeType.encode(call.queryParameters),
-              headers: method.headerParametersType.runtimeType.encode(call.headerParameters),
+              params: method.queryParametersType.encode(call.queryParameters),
+              headers: method.headerParametersType.encode(call.headerParameters),
 
               /** IMPORTANT NOTE: According to the docs, `null` is the proper value to not pass a body.
                * In testing, `null` crashes, but `undefined` works as expected.
@@ -153,7 +153,7 @@ export function makeRTKAPI<
                   error: 'Unexpected status code returned',
                 })
               } else {
-                const errorResponse = method.errorResponse.bodyType.runtimeType.decode(response);
+                const errorResponse = method.errorResponse.bodyType.decode(response);
 
                 if (E.isLeft(errorResponse)) {
                   const decodingErrors = errorResponse.left
@@ -174,7 +174,7 @@ export function makeRTKAPI<
               }
 
             } else {
-              const successResponse = method.successResponse.bodyType.runtimeType.decode(response);
+              const successResponse = method.successResponse.bodyType.decode(response);
 
               if (E.isLeft(successResponse)) {
                 const decodingErrors = successResponse.left
