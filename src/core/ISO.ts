@@ -42,7 +42,7 @@ export namespace ISO {
   const TimeDuration = new ISOType('ISOTimeDuration', Duration.isDuration, Duration.fromISO)
   const CombinedDateTime = new ISOType('ISOCombinedDateTime', DateTime.isDateTime, DateTime.fromISO)
 
-  export const runtimeTypes = {
+  export const models = {
     CountryCode,
     CurrencyCode,
     TimeInterval,
@@ -50,5 +50,5 @@ export namespace ISO {
     CombinedDateTime,
   }
 
-  export type Compiletime<Name extends keyof typeof runtimeTypes> = t.TypeOf<typeof runtimeTypes[Name]>
+  export type TypeOf<Name extends keyof typeof models> = t.TypeOf<typeof models[Name]>
 }

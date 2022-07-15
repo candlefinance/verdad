@@ -24,7 +24,7 @@ export namespace AWS {
     'CloudFront-Is-Mobile-Viewer': BooleanFromString,
     'CloudFront-Is-SmartTV-Viewer': BooleanFromString,
     'CloudFront-Is-Tablet-Viewer': BooleanFromString,
-    'CloudFront-Viewer-Country': ISO.runtimeTypes.CountryCode,
+    'CloudFront-Viewer-Country': ISO.models.CountryCode,
   })
 
   export const runtimeTypes = {
