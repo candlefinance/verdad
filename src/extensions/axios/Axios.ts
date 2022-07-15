@@ -140,7 +140,7 @@ export namespace VerdadAxios {
       const baseURL = this.api.servers[call.server]
       const url = baseURL + RESTResource.Path.stringify(method.path, {
         parameters: call.pathParameters,
-        encoder: method.pathParametersType.runtimeType,
+        encoder: method.pathParametersType,
       })
 
       function isExpectedStatusCode<ExpectedStatusCodes extends number>(
@@ -156,16 +156,16 @@ export namespace VerdadAxios {
           'category': 'Other',
           'event': 'Generic',
           metadata: {
-            'message': `[Verdad/Axios] calling ${method.name.toUpperCase()} ${url}: ${JSON.stringify(method.requestBodyType.runtimeType.encode(call.body))}`
+            'message': `[Verdad/Axios] calling ${method.name.toUpperCase()} ${url}: ${JSON.stringify(method.requestBodyType.encode(call.body))}`
           }
         })
 
         const response = await axios({
           method: method.name.toUpperCase(),
           url: url,
-          data: method.requestBodyType.runtimeType.encode(call.body),
-          headers: method.headerParametersType.runtimeType.encode(call.headerParameters),
-          params: method.queryParametersType.runtimeType.encode(call.queryParameters),
+          data: method.requestBodyType.encode(call.body),
+          headers: method.headerParametersType.encode(call.headerParameters),
+          params: method.queryParametersType.encode(call.queryParameters),
           httpsAgent: call.httpsAgent,
           ...wrappedIfSome('auth', call.basicAuth),
         })
@@ -180,7 +180,7 @@ export namespace VerdadAxios {
 
         } else {
           const normalizedData = response.data === '' ? null : response.data
-          const successResponse = method.successResponse.bodyType.runtimeType.decode(normalizedData);
+          const successResponse = method.successResponse.bodyType.decode(normalizedData);
 
           if (E.isLeft(successResponse)) {
             const decodingErrors = successResponse.left
@@ -235,7 +235,7 @@ export namespace VerdadAxios {
               response: response.data
             })
           } else {
-            const errorResponse = method.errorResponse.bodyType.runtimeType.decode(response.data);
+            const errorResponse = method.errorResponse.bodyType.decode(response.data);
 
             if (E.isLeft(errorResponse)) {
               return E.left({

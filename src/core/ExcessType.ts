@@ -1,6 +1,5 @@
 import * as t from "io-ts";
-
-import { either, Either, isRight, left, right, Right } from 'fp-ts/lib/Either'
+import * as E from 'fp-ts/Either'
 
 // Excess
 // Copied from https://github.com/gcanti/io-ts/issues/322#issuecomment-584658211
@@ -41,7 +40,7 @@ const getExcessTypeName = (codec: t.Any): string => {
   return `Excess<${codec.name}>`
 }
 
-const stripKeys = <T = any>(o: T, props: t.Props): Either<Array<string>, T> => {
+const stripKeys = <T = any>(o: T, props: t.Props): E.Either<Array<string>, T> => {
   const keys = Object.getOwnPropertyNames(o)
   const propsKeys = Object.getOwnPropertyNames(props)
 
@@ -64,8 +63,8 @@ const stripKeys = <T = any>(o: T, props: t.Props): Either<Array<string>, T> => {
   }
 
   return keys.length
-    ? left(keys)
-    : right(o)
+    ? E.left(keys)
+    : E.right(o)
 }
 
 // FIXME: Support an option where excess keys are stripped (on both encode and decode) rather than an error being returned.
@@ -73,12 +72,12 @@ export const excess = <C extends t.HasProps>(codec: C, name: string = getExcessT
   const props: t.Props = getProps(codec)
   return new ExcessType<C>(
     name,
-    (u): u is C => isRight(stripKeys(u, props)) && codec.is(u),
-    (u, c) => either.chain(
+    (u): u is C => E.isRight(stripKeys(u, props)) && codec.is(u),
+    (u, c) => E.either.chain(
       t.UnknownRecord.validate(u, c),
-      () => either.chain(
+      () => E.either.chain(
         codec.validate(u, c),
-        (a) => either.mapLeft(
+        (a) => E.either.mapLeft(
           stripKeys<C>(a, props),
           (keys) => keys.map((k) => ({
             value: a[k],
@@ -89,7 +88,7 @@ export const excess = <C extends t.HasProps>(codec: C, name: string = getExcessT
       ),
     ),
     // FIXME: The error generated from the left path is very confusing, since it just returns an "encoded" empty object.
-    (a) => codec.encode((stripKeys(a, props) as Right<any>).right),
+    (a) => codec.encode((stripKeys(a, props) as E.Right<any>).right),
     codec,
   )
 }

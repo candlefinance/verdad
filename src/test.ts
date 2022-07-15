@@ -1,16 +1,14 @@
-![verdad](https://user-images.githubusercontent.com/2965782/178850715-40efafda-c0fd-4adc-a7d5-35d649b02f7f.png)
+// This file contains the sample code used in README.md
+// Its purpose is to verify that the code is compilable
 
-# Verdad
+const PlaylistModel = t.type({ /* ... */ })
+function retrievePlaylists(_: any, _2: any, _3: any): t.TypeOf<typeof PlaylistModel>[] {
+  return []
+}
+function displayToUser(_: any, _2?: any) { }
 
-Verdad lets you:
-- ✅ write your API once, with support for multiple base URLs and fully typed parameters & bodies (using **io-ts**)
-- ✅ implement and deploy your API to any infrastructure using built-in or custom extensions
-- ✅ call your API from the client with zero duplication and no synchonization headaches
+// ------- STEP 1
 
-### Step 1
-Define your backend API in Verdad:
-
-```typescript
 import * as t from 'io-ts'
 
 import { StatusCodes } from "http-status-codes";
@@ -19,55 +17,47 @@ import { VerdadRESTAPI } from "./core/RESTAPI";
 import { NumberFromString } from 'io-ts-types';
 
 export const musicAPI = VerdadRESTAPI.api({
-    name: 'my New Music Startup',
-    servers: {
-      prod: 'https://api.music.com',
-      test: 'https://test-api.music.com',
-    },
-    builder: (ctx) => ({
-      playlists: VerdadRESTAPI.resource(ctx, ['users', { parameter: 'userID'}, 'playlists'], {
-  
-        get: (ctx) => VerdadRESTAPI.method(ctx, {
-          pathParametersType: t.type({ userID: t.string }),
-          queryParametersType: t.partial({ pageNumber: NumberFromString }),
-          headerParametersType: t.type({ 'authorization-token': t.string, }),
-          requestBodyType: t.null,
-          successResponse: {
-            statusCodes: [
-              StatusCodes.OK as const
-            ],
-            bodyType: t.array(PlaylistModel)
-          },
-          errorResponse: {
-            statusCodes: [
-              StatusCodes.UNAUTHORIZED as const,
-              StatusCodes.BAD_REQUEST as const,
-              StatusCodes.INTERNAL_SERVER_ERROR as const,
-            ],
-            bodyType: t.type({ errorDetails: t.string }),
-          }
-        }),
-  
-        post: ...,
-        delete: ...,
+  name: 'my New Music Startup',
+  servers: {
+    prod: 'https://api.music.com',
+    test: 'https://test-api.music.com',
+  },
+  builder: (ctx) => ({
+    playlists: VerdadRESTAPI.resource(ctx, ['users', { parameter: 'userID' }, 'playlists'], {
 
-        patch: () => undefined,
-        put: () => undefined,
+      get: (ctx) => VerdadRESTAPI.method(ctx, {
+        pathParametersType: t.type({ userID: t.string }),
+        queryParametersType: t.partial({ pageNumber: NumberFromString }),
+        headerParametersType: t.type({ 'authorization-token': t.string, }),
+        requestBodyType: t.null,
+        successResponse: {
+          statusCodes: [
+            StatusCodes.OK as const
+          ],
+          bodyType: t.array(PlaylistModel)
+        },
+        errorResponse: {
+          statusCodes: [
+            StatusCodes.UNAUTHORIZED as const,
+            StatusCodes.BAD_REQUEST as const,
+            StatusCodes.INTERNAL_SERVER_ERROR as const,
+          ],
+          bodyType: t.type({ errorDetails: t.string }),
+        }
       }),
-  
-      albums: ...,
-    })
+
+      post: () => undefined,
+      delete: () => undefined,
+      patch: () => undefined,
+      put: () => undefined,
+    }),
+
+    // albums: ...,
+  })
 })
-```
 
-### Step 2
-Use an extension to deploy this API to your infrastructure of choice:
+// ------- STEP 2A
 
-For example, to deploy to AWS Lambda:
-
-1. Call `VerdadCloudFormation.makeServerlessFunctions()` from your `serverless.ts` file:
-
-```typescript
 import type { AWS } from '@serverless/typescript';
 import { VerdadCloudFormation } from './extensions/aws/CloudFormation';
 
@@ -78,13 +68,11 @@ const serverlessConfig: AWS = {
 };
 
 module.exports = serverlessConfig;
-```
 
-2. Implement each of your API methods. `makeServerlessFunctions()` looks for the implementations under `src/resources/<path>/<method>`. For the `users/*/playlists` GET method example above, it would look for an implementation in `src/resources/users/playlists/get.ts`:
+// ------- STEP 2B
 
-```typescript
 import * as E from 'fp-ts/Either'
-import { implement, LambdaRuntimeError } from 'verdad/extensions/aws/Lambda';
+import { implement, LambdaRuntimeError } from './extensions/aws/Lambda';
 
 export const { verdadMain } = implement(
   musicAPI.resources.playlists.get,
@@ -125,15 +113,9 @@ export const { verdadMain } = implement(
     }
   }
 )
-```
 
-### Step 3
+// ------- STEP 3
 
-Use a client extension to call the APIs:
-
-For example, to make calls using Axios:
-
-```typescript
 import { VerdadAxios } from './extensions/axios/Axios';
 
 async function getPlaylists(userID: string, authToken: string) {
@@ -177,4 +159,7 @@ async function getPlaylists(userID: string, authToken: string) {
     }
   }
 }
-```
+
+// -------
+
+getPlaylists('', '')

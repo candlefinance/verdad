@@ -1,8 +1,8 @@
 import * as t from "io-ts";
+import * as E from 'fp-ts/Either'
 
-import { pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/function";
 import { Interval, Duration, DateTime, ToISOTimeOptions, DateTimeOptions } from "luxon";
-import { chain } from "fp-ts/lib/Either";
 
 export namespace ISO {
 
@@ -21,7 +21,7 @@ export namespace ISO {
         isType,
         (iso, context) => pipe(
           t.string.validate(iso, context),
-          chain((isoString) => t.success(fromISO(isoString)))
+          E.chain((isoString) => t.success(fromISO(isoString)))
         ),
         luxonValue => luxonValue.toISO()
       )
@@ -42,7 +42,7 @@ export namespace ISO {
   const TimeDuration = new ISOType('ISOTimeDuration', Duration.isDuration, Duration.fromISO)
   const CombinedDateTime = new ISOType('ISOCombinedDateTime', DateTime.isDateTime, DateTime.fromISO)
 
-  export const runtimeTypes = {
+  export const models = {
     CountryCode,
     CurrencyCode,
     TimeInterval,
@@ -50,5 +50,5 @@ export namespace ISO {
     CombinedDateTime,
   }
 
-  export type Compiletime<Name extends keyof typeof runtimeTypes> = t.TypeOf<typeof runtimeTypes[Name]>
+  export type TypeOf<Name extends keyof typeof models> = t.TypeOf<typeof models[Name]>
 }

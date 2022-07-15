@@ -1,10 +1,9 @@
 import _ from 'lodash'
 
 import * as t from 'io-ts'
-import * as E from 'fp-ts/lib/Either'
+import * as E from 'fp-ts/Either'
 
-import { pipe } from 'fp-ts/lib/function'
-import { isRight } from 'fp-ts/lib/Either'
+import { pipe } from 'fp-ts/function'
 import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb"
 
 import type { VerdadNoSQLDB } from "../../core/NoSQLDB"
@@ -95,7 +94,7 @@ export namespace VerdadDynamoDB {
         // FIXME: .runtimeType is <any, any>
         const decodedItem = t.array(input.tableDefinition.runtimeType).decode(queryResponse.Items)
 
-        if (isRight(decodedItem)) {
+        if (E.isRight(decodedItem)) {
           return decodedItem.right
         } else {
           throw Error(`Item returned from DynamoDB has invalid schema: ${JSON.stringify(decodedItem.left)}`)
@@ -140,7 +139,7 @@ export namespace VerdadDynamoDB {
       } else {
         const decodedItem = input.tableDefinition.runtimeType.decode(getResponse.Item)
 
-        if (isRight(decodedItem)) {
+        if (E.isRight(decodedItem)) {
           return decodedItem.right
         } else {
           throw Error(`Item returned from DynamoDB has invalid schema: ${JSON.stringify(decodedItem.left)}`)
