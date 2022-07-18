@@ -2,7 +2,10 @@
   "name": "verdad",
   "version": "1.0.10",
   "description": "Define a single source of truth for your API and persistence layer, and use Verdad's extensions to a) call it, b) implement it, and c) deploy it.",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "type": "module",
+  "files": ["lib"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
