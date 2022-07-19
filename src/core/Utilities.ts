@@ -455,14 +455,14 @@ export type Codable<Type, TypeRaw> = {
 // --- Named types
 
 export function namedType<
-  RuntimeTypes extends Record<string, t.Type<any>>,
-  Name extends string & keyof RuntimeTypes
->(runtimeTypes: RuntimeTypes, name: Name): t.Type<
-  typeof runtimeTypes[Name]['_A'],
-  typeof runtimeTypes[Name]['_O']
+  Models extends Record<string, t.Type<any>>,
+  Name extends string & keyof Models
+>(models: Models, name: Name): t.Type<
+  typeof models[Name]['_A'],
+  typeof models[Name]['_O']
 > {
   // FIXME: !! shouldn't be required
-  const type = runtimeTypes[name]!!
+  const type = models[name]!!
 
   return new t.Type<typeof type._A, typeof type._O, typeof type._I>(
     name,
