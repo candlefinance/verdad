@@ -57,7 +57,7 @@ type ParameterObjectType = t.InterfaceType<Record<string, ParameterValueType>>
 type UniqueMethod = {
   name: RESTResource.Method.Name,
   path: string,
-  operation: OpenAPI.Compiletime<'Operation'>
+  operation: OpenAPI.TypeOf<'Operation'>
 }
 
 export namespace OpenAPIWriter {
@@ -68,13 +68,13 @@ export namespace OpenAPIWriter {
     filePath: string,
   }) {
 
-    function createOpenAPIDocument(api: VerdadRESTAPI.Definition<any, VerdadRESTAPI.Servers>): OpenAPI.Compiletime<'Document'> {
+    function createOpenAPIDocument(api: VerdadRESTAPI.Definition<any, VerdadRESTAPI.Servers>): OpenAPI.TypeOf<'Document'> {
       var methods: UniqueMethod[] = []
       var models: t.Type<any, any>[] = []
 
       api.forEachMethod((method) => {
 
-        const makeOperation = (): OpenAPI.Compiletime<'Operation'> => {
+        const makeOperation = (): OpenAPI.TypeOf<'Operation'> => {
           return {
             parameters: [
               explodedParametersSafe(method.pathParametersType, 'path'),
@@ -129,14 +129,14 @@ export namespace OpenAPIWriter {
         })
       })
 
-      const pathItems: OpenAPI.Compiletime<'Paths'> = _(methods)
+      const pathItems: OpenAPI.TypeOf<'Paths'> = _(methods)
         .groupBy((method) => method.path)
         .mapValues((pathMethods) => {
 
           function makeNamedOperation<Name extends RESTResource.Method.Name>(
             name: Name
             // SAFETY: Because of empty object option, not enforced that name must be of correct type
-          ): { [Property in Name]: OpenAPI.Compiletime<'Operation'> } | {} {
+          ): { [Property in Name]: OpenAPI.TypeOf<'Operation'> } | {} {
             const method = pathMethods.find((method) => method.name === name)
             return method === undefined ? {} : { [name]: method.operation }
           }
@@ -180,7 +180,7 @@ export namespace OpenAPIWriter {
       }
     }
 
-    function schemaForTypeSafe(type: t.Any): OpenAPI.Compiletime<'Schema'> {
+    function schemaForTypeSafe(type: t.Any): OpenAPI.TypeOf<'Schema'> {
       const castedType = type as TaggedType
 
       const unsafeResult = schemaForType(castedType)
@@ -201,7 +201,7 @@ export namespace OpenAPIWriter {
       return unsafeResult
     }
 
-    function explodedParametersSafe(type: t.Any, location: 'query' | 'header' | 'path'): OpenAPI.Compiletime<'Parameter'>[] {
+    function explodedParametersSafe(type: t.Any, location: 'query' | 'header' | 'path'): OpenAPI.TypeOf<'Parameter'>[] {
       const castedType = type as ParameterObjectType
 
       const unsafeResult = explodedParameters(castedType, location)
@@ -212,10 +212,10 @@ export namespace OpenAPIWriter {
       return unsafeResult
     }
 
-    function explodedParameters(type: ParameterObjectType, location: 'query' | 'header' | 'path'): OpenAPI.Compiletime<'Parameter'>[] {
+    function explodedParameters(type: ParameterObjectType, location: 'query' | 'header' | 'path'): OpenAPI.TypeOf<'Parameter'>[] {
 
-      const explodedProps = (args: { props: Record<string, ParameterValueType>, required: boolean }): OpenAPI.Compiletime<'Parameter'>[] => {
-        return _(args.props).map((value, name): OpenAPI.Compiletime<'Parameter'> => {
+      const explodedProps = (args: { props: Record<string, ParameterValueType>, required: boolean }): OpenAPI.TypeOf<'Parameter'>[] => {
+        return _(args.props).map((value, name): OpenAPI.TypeOf<'Parameter'> => {
           return {
             description: '',
             name: name,
@@ -241,8 +241,8 @@ export namespace OpenAPIWriter {
       }
     }
 
-    function schemaForType(type: TaggedType): OpenAPI.Compiletime<'Schema'> {
-      let schema: OpenAPI.Compiletime<'Schema'>
+    function schemaForType(type: TaggedType): OpenAPI.TypeOf<'Schema'> {
+      let schema: OpenAPI.TypeOf<'Schema'>
 
       switch (type._tag) {
 

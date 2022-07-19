@@ -27,16 +27,12 @@ export namespace AWS {
     'CloudFront-Viewer-Country': ISO.models.CountryCode,
   })
 
-  export const runtimeTypes = {
+  export const models = {
     Null: t.null,
     Empty: t.type({}),
 
     APIGatewayHeader
   }
 
-  export function named<Name extends keyof typeof runtimeTypes>(name: Name) {
-    return { name: name, runtimeType: runtimeTypes[name] }
-  }
-
-  export type Compiletime<Name extends keyof typeof runtimeTypes> = t.TypeOf<typeof runtimeTypes[Name]>
+  export type TypeOf<Name extends keyof typeof models> = t.TypeOf<typeof models[Name]>
 }

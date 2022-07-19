@@ -16,13 +16,13 @@ export namespace OpenAPI {
   })
 
   interface RecursiveSchemaInterface {
-    allOf?: Compiletime<'Schema'>[],
-    oneOf?: Compiletime<'Schema'>[],
-    anyOf?: Compiletime<'Schema'>[],
-    not?: Compiletime<'Schema'>,
-    items?: Compiletime<'Schema'>,
-    properties?: Record<string, Compiletime<'Schema'>>,
-    additionalProperties?: boolean | Compiletime<'Schema'>,
+    allOf?: TypeOf<'Schema'>[],
+    oneOf?: TypeOf<'Schema'>[],
+    anyOf?: TypeOf<'Schema'>[],
+    not?: TypeOf<'Schema'>,
+    items?: TypeOf<'Schema'>,
+    properties?: Record<string, TypeOf<'Schema'>>,
+    additionalProperties?: boolean | TypeOf<'Schema'>,
   }
 
   const RecursiveSchema: t.Type<RecursiveSchemaInterface> = t.recursion('RecursiveSchema', () => t.partial({
@@ -551,7 +551,7 @@ export namespace OpenAPI {
     components: Components,
   })
 
-  export const runtimeTypes = {
+  export const models = {
     Info,
     Schema,
     Reference,
@@ -567,5 +567,5 @@ export namespace OpenAPI {
     Document
   }
 
-  export type Compiletime<Name extends keyof typeof runtimeTypes> = t.TypeOf<typeof runtimeTypes[Name]>
+  export type TypeOf<Name extends keyof typeof models> = t.TypeOf<typeof models[Name]>
 }
