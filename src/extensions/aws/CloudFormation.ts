@@ -162,11 +162,11 @@ export namespace VerdadCloudFormation {
     >(
       noSQLDB: VerdadNoSQLDB.Definition<T, DBS>,
       prefix: string,
-  ): Record<string, CloudFormationSchema.Compiletime<'Resource'>> {
+  ): Record<string, CloudFormationSchema.TypeOf<'Resource'>> {
 
     return _(noSQLDB.dbStages)
-      .map((dbStage): Record<string, CloudFormationSchema.Compiletime<'Resource'>> => _(noSQLDB.tables)
-        .mapValues((tableSpec, rawTableName): CloudFormationSchema.Compiletime<'Resource'> => {
+      .map((dbStage): Record<string, CloudFormationSchema.TypeOf<'Resource'>> => _(noSQLDB.tables)
+        .mapValues((tableSpec, rawTableName): CloudFormationSchema.TypeOf<'Resource'> => {
           // FIXME: tableSpec is untyped
           const secondaryKeys: string[] = tableSpec.secondaryKeys ?? []
           const allKeys = secondaryKeys.concat(tableSpec.primaryKey)

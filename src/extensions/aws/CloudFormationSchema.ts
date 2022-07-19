@@ -92,7 +92,7 @@ export namespace CloudFormationSchema {
     ]) 
   })
 
-  export const runtimeTypes = {
+  export const models = {
     AttributeDefinition,
     KeySchema,
     ProvisionedThroughput,
@@ -101,5 +101,5 @@ export namespace CloudFormationSchema {
     Resource
   }
 
-  export type Compiletime<Name extends keyof typeof runtimeTypes> = t.TypeOf<typeof runtimeTypes[Name]>
+  export type TypeOf<Name extends keyof typeof models> = t.TypeOf<typeof models[Name]>
 }
