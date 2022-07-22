@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import safeJsonStringify from 'safe-json-stringify';
 
 import * as t from 'io-ts'
@@ -8,8 +7,9 @@ import * as TE from 'fp-ts/TaskEither'
 import { flow, pipe } from 'fp-ts/function';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-import { lazy } from '../../core/Utilities';
 import type { RESTResource } from "../../core/RESTResource";
+
+import { lazy } from '../../core/utilities/fp';
 
 // Error logging protocols:
 // Any "user" error: cleaned and returned in response to client

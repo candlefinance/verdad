@@ -1,15 +1,21 @@
-import type * as t from 'io-ts'
-import * as fs from 'fs'
-
-import _ from 'lodash'
 import YAML from 'yaml'
 
-import { identity, Logger } from '../../core/Utilities';
+import type * as t from 'io-ts'
+import * as fs from 'fs'
+import * as NEA from 'fp-ts/NonEmptyArray'
+import * as R from 'fp-ts/Record'
+import * as R_std from 'fp-ts-std/Record'
+
+import { identity, pipe } from 'fp-ts/function'
+
 import { RESTResource } from '../../core/RESTResource';
 import type { VerdadRESTAPI } from "../../core/RESTAPI";
 import type { ExcessType } from '../../core/ExcessType';
-import type { OpenAPI } from "./OpenAPISchema"
 import type { ISO } from '../../core/ISO';
+
+import type { Logger } from '../../core/utilities/logger';
+
+import type { OpenAPI } from "./OpenAPISchema"
 
 // MARK: Built-in io-ts types
 type TaggedType = t.NullType
@@ -129,9 +135,9 @@ export namespace OpenAPIWriter {
         })
       })
 
-      const pathItems: OpenAPI.TypeOf<'Paths'> = _(methods)
-        .groupBy((method) => method.path)
-        .mapValues((pathMethods) => {
+      const pathItems: OpenAPI.TypeOf<'Paths'> = pipe(methods,
+        NEA.groupBy((method) => method.path),
+        R.map((pathMethods) => {
 
           function makeNamedOperation<Name extends RESTResource.Method.Name>(
             name: Name
@@ -150,20 +156,21 @@ export namespace OpenAPIWriter {
             ...makeNamedOperation('delete'),
           }
         })
-        .value()
+      )
 
-      const schemas = _(models)
-        .keyBy((namedSchema) => namedSchema.name)
-        .mapValues((namedSchema) => namedSchema)
-        .mapValues(schemaForTypeSafe)
-        .value()
+      const schemas = pipe(models,
+        NEA.groupBy((namedSchema) => namedSchema.name),
+        R.map(NEA.head),
+        R.map(schemaForTypeSafe)
+      )
 
-      const servers = _(api.servers)
-        .map((baseURL, serverName) => ({
+      const servers = pipe(api.servers,
+        R.mapWithIndex((serverName, baseURL) => ({
           url: baseURL,
           description: serverName
-        }))
-        .value()
+        })),
+        R_std.values
+      )
 
       // FIXME: Add servers dictionary
       return {
@@ -215,15 +222,16 @@ export namespace OpenAPIWriter {
     function explodedParameters(type: ParameterObjectType, location: 'query' | 'header' | 'path'): OpenAPI.TypeOf<'Parameter'>[] {
 
       const explodedProps = (args: { props: Record<string, ParameterValueType>, required: boolean }): OpenAPI.TypeOf<'Parameter'>[] => {
-        return _(args.props).map((value, name): OpenAPI.TypeOf<'Parameter'> => {
-          return {
+        return pipe(args.props,
+          R.mapWithIndex((name, value): OpenAPI.TypeOf<'Parameter'> => ({
             description: '',
             name: name,
             in: location,
             schema: schemaForTypeSafe(value),
             required: args.required
-          }
-        }).value()
+          })),
+          R_std.values
+        )
       }
 
       switch (type._tag) {
@@ -324,7 +332,7 @@ export namespace OpenAPIWriter {
         case 'InterfaceType':
           schema = {
             type: 'object',
-            properties: _(type.props).mapValues(schemaForTypeSafe).value(),
+            properties: pipe(type.props, R.map(schemaForTypeSafe)),
             required: Object.keys(type.props)
           }
           break;
@@ -332,7 +340,7 @@ export namespace OpenAPIWriter {
         case 'PartialType':
           schema = {
             type: 'object',
-            properties: _(type.props).mapValues(schemaForTypeSafe).value()
+            properties: pipe(type.props, R.map(schemaForTypeSafe))
           }
           break;
 

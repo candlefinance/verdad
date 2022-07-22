@@ -3,9 +3,11 @@ import type * as t from 'io-ts'
 
 import axios, { AxiosBasicCredentials, AxiosRequestConfig } from "axios";
 
-import { Logger, wrappedIfSome } from "../../core/Utilities";
 import type { VerdadRESTAPI } from "../../core/RESTAPI";
 import { RESTResource } from "../../core/RESTResource";
+
+import type { Logger } from "../../core/utilities/logger";
+import { wrappedIfSome } from '../../core/utilities/fp';
 
 export namespace VerdadAxios {
 

@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 import * as t from 'io-ts'
 import * as A from 'fp-ts/Array'
 import * as O from 'fp-ts/Option'
