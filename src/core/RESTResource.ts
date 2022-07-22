@@ -1,8 +1,10 @@
-import _ from 'lodash'
-
 import type * as t from 'io-ts'
+import * as A from 'fp-ts/Array'
 
-import type { Codable } from './Utilities'
+import { pipe } from 'fp-ts/function'
+
+import type { Codable } from './utilities/io'
+import { join } from './utilities/fp'
 
 export namespace RESTResource {
 
@@ -16,7 +18,7 @@ export namespace RESTResource {
             path: Qualified<Path>,
             substitutions?: { parameters: Path, encoder: t.Type<Path, PathRaw> }
         ): string {
-            const pathComponents = _(path).map((component) => {
+            const pathComponents = pipe(path, A.map((component) => {
                 if (typeof component === 'string') {
                     return component
                 } else if (substitutions !== undefined) {
@@ -29,14 +31,17 @@ export namespace RESTResource {
                     // FIXME: Require only string keys
                     return `{${String(component.parameter)}}`
                 }
-            })
+            }))
 
-            return pathComponents.unshift("").join("/")
+            return pipe(pathComponents,
+                A.prepend(""),
+                join("/")
+            )
         }
     }
 
     export type StringRaw<Type> = { [Property in keyof Type]: string }
-    
+
     export namespace Method {
 
         export type Name = 'get' | 'post' | 'put' | 'patch' | 'delete'

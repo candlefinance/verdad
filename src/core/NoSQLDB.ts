@@ -5,17 +5,17 @@ import type { AttributeValue } from "@aws-sdk/client-dynamodb"
 export namespace VerdadNoSQLDB {
 
   export type NoSQLTables = Record<string, TableDefinition<any, any, any, any>>
-  export type DBStages = string[]
+  export type DBStage = string
 
-  export type Definition<Tables extends NoSQLTables, Stages extends DBStages> = {
-    dbStages: Stages,
+  export type Definition<Tables extends NoSQLTables, Stage extends DBStage> = {
+    dbStages: Stage[],
     tables: Tables
   }
 
-  export function db<Tables extends NoSQLTables, Stages extends DBStages>(
-    dbStages: Stages,
+  export function db<Tables extends NoSQLTables, Stage extends DBStage>(
+    dbStages: Stage[],
     tables: Tables,
-  ): Definition<Tables, Stages> {
+  ): Definition<Tables, Stage> {
     return {
       dbStages: dbStages,
       tables

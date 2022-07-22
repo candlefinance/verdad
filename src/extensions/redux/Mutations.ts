@@ -1,7 +1,8 @@
-import _ from 'lodash'
-
 import type * as t from 'io-ts'
 import * as E from 'fp-ts/Either'
+import * as R from 'fp-ts/Record'
+import * as O from 'fp-ts/Option'
+import * as R_std from 'fp-ts-std/Record'
 
 import {
   BaseQueryFn,
@@ -12,10 +13,13 @@ import {
   FetchBaseQueryMeta,
   MutationDefinition,
 } from '@reduxjs/toolkit/query/react';
+import { pipe } from 'fp-ts/function';
 
 import { RESTResource } from '../../core/RESTResource';
 import type { VerdadRESTAPI } from '../../core/RESTAPI';
-import type { Logger } from '../../core/Utilities';
+
+import type { Logger } from '../../core/utilities/logger';
+import { mapKeys } from '../../core/utilities/fp';
 
 type VerdadRTKErrorTemplate<Label extends string, Data extends Record<string, any>> = {
   status: 'CUSTOM_ERROR',
@@ -236,30 +240,29 @@ export function makeRTKAPI<
 
       // IMPORTANT NOTE: The output of the following code must exactly match the 'RTKEndpoints' type signature.
       // It is NOT being checked by the compiler for type accuracy, due to limitations of type inference for higher-order collection functions.
-      const resourceMutations = _(input.api.resources as VerdadRESTAPI.Resources)
-        .map((methods, resourceName) => {
-          return _(methods)
-            .mapKeys((_, methodName) => `${resourceName}${methodName.toUpperCase()}`)
-            .mapValues((method) => method === undefined ? undefined : makeRTKMutation(method))
-            .omitBy(_.isUndefined)
-            .value()
-        })
-        .value()
+      const resourceMutations = pipe(input.api.resources as VerdadRESTAPI.Resources,
+        R.mapWithIndex((resourceName, methods) => pipe(methods,
+          mapKeys((methodName) => `${resourceName}${methodName.toUpperCase()}`),
+          R.map((method) => method === undefined ? undefined : makeRTKMutation(method)),
+          R.map(O.fromNullable),
+          R.compact
+        )),
+        R_std.values,
+      )
 
-        // FIXME: This doesn't actually include undefined values, but the .omitBy call above doesn't reflect in the type engine
-        var mutations: Record<string, MutationDefinition<
+      var mutations: Record<string, MutationDefinition<
         RESTResource.Method.Call<any, any, any, any>,
         BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, {}, FetchBaseQueryMeta>,
         never,
         any,
         ReducerPath
-      > | undefined> = {}
+      >> = {}
       for (const resource of resourceMutations) {
         for (const [methodName, method] of Object.entries(resource)) {
           mutations[methodName] = method
         }
       }
-      
+
       return mutations as RTKEndpoints
     },
   });

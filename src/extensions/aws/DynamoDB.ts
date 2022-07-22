@@ -1,4 +1,3 @@
-import _ from 'lodash'
 
 import * as t from 'io-ts'
 import * as E from 'fp-ts/Either'
@@ -7,12 +6,16 @@ import { pipe } from 'fp-ts/function'
 import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb"
 
 import type { VerdadNoSQLDB } from "../../core/NoSQLDB"
-import { ArrayElementType, CodeContext, Logger, removeNilFields } from '../../core/Utilities'
+
+import { recursiveAutoCompact } from '../../core/utilities/fp'
+import type { CodeContext, Logger } from '../../core/utilities/logger'
+
+import { VerdadCloudFormation } from './CloudFormation'
 
 export namespace VerdadDynamoDB {
 
   // FIXME: Use same 'join' helper function as CloudFormation.ts
-  export class Interface<Tables extends VerdadNoSQLDB.NoSQLTables, DBStages extends VerdadNoSQLDB.DBStages> {
+  export class Interface<Tables extends VerdadNoSQLDB.NoSQLTables, DBStage extends VerdadNoSQLDB.DBStage & string> {
     noSQLDB; tablePrefix; dynamoDB; logger; dbStage
 
     private context: CodeContext = {
@@ -24,8 +27,8 @@ export namespace VerdadDynamoDB {
     }
 
     constructor(input: {
-      noSQLDB: VerdadNoSQLDB.Definition<Tables, DBStages>,
-      dbStage: ArrayElementType<DBStages> & string,
+      noSQLDB: VerdadNoSQLDB.Definition<Tables, DBStage>,
+      dbStage: DBStage,
       tablePrefix: string,
       logger: Logger<any, any>
     }) {
@@ -161,7 +164,7 @@ export namespace VerdadDynamoDB {
 
       const putRequest = {
         TableName: this.qualify(input.tableName),
-        Item: removeNilFields(encodedItem)
+        Item: recursiveAutoCompact(encodedItem)
       }
 
       this.logger.log('info', {
@@ -213,7 +216,11 @@ export namespace VerdadDynamoDB {
     }
 
     private qualify<TK extends keyof Tables>(tableName: TK & string) {
-      return [this.tablePrefix, this.dbStage, tableName].join('-')
+      return VerdadCloudFormation.qualifiedTableName({
+        tableName,
+        prefix: this.tablePrefix,
+        dbStage: this.dbStage
+      })
     }
   }
 }

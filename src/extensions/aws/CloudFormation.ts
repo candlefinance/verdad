@@ -1,12 +1,19 @@
-import _ from 'lodash'
+import * as A from 'fp-ts/Array'
+import * as O from 'fp-ts/Option'
+import * as R_ext from 'fp-ts-std/Record'
+import * as R from 'fp-ts/Record'
 
 import type { AWS, AwsIamPolicyStatements } from '@serverless/typescript';
+import { identity, pipe } from 'fp-ts/function';
 
 import { RESTResource } from "../../core/RESTResource";
 import type { VerdadRESTAPI } from '../../core/RESTAPI';
-import { ArrayElementType, wrappedIfSome } from '../../core/Utilities';
-import type { CloudFormationSchema } from './CloudFormationSchema';
 import type { VerdadNoSQLDB } from '../../core/NoSQLDB';
+
+import type { ArrayElementType } from '../../core/utilities/types';
+import { join, mapKeys, wrappedIfSome } from '../../core/utilities/fp';
+
+import type { CloudFormationSchema } from './CloudFormationSchema';
 
 // FIXME: Make class with initializer that takes (and types) the API
 export namespace VerdadCloudFormation {
@@ -16,18 +23,20 @@ export namespace VerdadCloudFormation {
     var functions: Exclude<AWS['functions'], undefined> = {}
 
     type MakeHandlerPathInput = {
-      filePathComponents: _.Collection<string>,
+      filePathComponents: string[],
       functionName: string
     }
 
     function makeHandlerPath(input: MakeHandlerPathInput): string {
-      const filePath = input.filePathComponents
-        .unshift('resources')
-        .unshift('src')
-        .join('/')
+      const filePath = pipe(input.filePathComponents,
+        A.prepend('resources'),
+        A.prepend('src'),
+        join('/')
+      )
 
-      return _([filePath, input.functionName])
-        .join('.')
+      return pipe([filePath, input.functionName],
+        join('.')
+      )
     }
 
     function makeFunctionForMethod<
@@ -51,22 +60,17 @@ export namespace VerdadCloudFormation {
         ErrorResponseStatusCodes, ErrorResponse, ErrorResponseRaw
       >
     ) {
-      const pathLiteralComponentsOnly = _(method.path)
-        .map((component) => {
-          if (typeof component === 'string') {
-            return component
-          } else {
-            return undefined
-          }
-        })
-        .compact()
+      const pathLiteralComponentsOnly = pipe(method.path,
+        A.map((component) => typeof component === 'string' ? O.some(component) : O.none),
+        A.compact
+      )
 
-      const awsFunctionName = pathLiteralComponentsOnly
-        // .map((component) => component.slice(undefined, 3))
-        .unshift(method.name.toUpperCase())
-        .join("-")
+      const awsFunctionName = pipe(pathLiteralComponentsOnly,
+        A.prepend(method.name.toUpperCase()),
+        join("-"),
+      )
 
-      const functionHandlerPath = pathLiteralComponentsOnly.push(method.name)
+      const functionHandlerPath = pipe(pathLiteralComponentsOnly, A.appendW(method.name))
 
       const functionHandlerName = makeHandlerPath({
         filePathComponents: functionHandlerPath,
@@ -97,15 +101,21 @@ export namespace VerdadCloudFormation {
   // FIXME: Move these generator functions into Verdad
   export function makeDynamoDBTablePermissions<
     T extends VerdadNoSQLDB.NoSQLTables,
-    DBS extends VerdadNoSQLDB.DBStages,
+    DBStage extends VerdadNoSQLDB.DBStage,
     >(
-      noSQLDB: VerdadNoSQLDB.Definition<T, DBS>,
+      noSQLDB: VerdadNoSQLDB.Definition<T, DBStage>,
+      awsRegion: string,
+      awsAccountID: string,
   ): AwsIamPolicyStatements {
 
-    return _(noSQLDB.dbStages)
-      .flatMap((dbStage): AwsIamPolicyStatements => _(noSQLDB.tables)
-        .mapKeys((_, rawTableName) => [rawTableName, dbStage].join('FOR'))
-        .flatMap((tableSpec, tableKey): AwsIamPolicyStatements => {
+    return pipe(noSQLDB.dbStages,
+      A.chain((dbStage): AwsIamPolicyStatements => pipe(noSQLDB.tables,
+        R.mapWithIndex((rawTableName, tableSpec): AwsIamPolicyStatements => {
+          const tableResourceARN = `arn:aws:dynamodb:${awsRegion}:${awsAccountID}:table/${qualifiedTableName({
+            prefix: '*',
+            tableName: rawTableName,
+            dbStage,
+          })}`
 
           const tablePermissions: ArrayElementType<AwsIamPolicyStatements> = {
             Effect: "Allow",
@@ -117,9 +127,7 @@ export namespace VerdadCloudFormation {
               "dynamodb:UpdateItem",
               "dynamodb:DeleteItem"
             ],
-            Resource: {
-              "Fn::GetAtt": [tableKey, "Arn"]
-            }
+            Resource: tableResourceARN
           }
 
           if (tableSpec.secondaryKeys === undefined) {
@@ -136,37 +144,28 @@ export namespace VerdadCloudFormation {
               "dynamodb:UpdateItem",
               "dynamodb:DeleteItem"
             ],
-            Resource: {
-              "Fn::Join": [
-                '/', [
-                  {
-                    "Fn::GetAtt": [tableKey, "Arn"]
-                  },
-                  'index',
-                  secondaryKey
-                ]
-              ]
-            }
+            Resource: `${tableResourceARN}/index/${secondaryKey}`
           }))
 
           return globalSecondaryIndexesPermissions.concat(tablePermissions)
-        })
-        .value()
-      )
-      .value()
+        }),
+        R_ext.values,
+        A.flatten,
+      ))
+    )
   }
 
   export function makeDynamoDBTables<
     T extends VerdadNoSQLDB.NoSQLTables,
-    DBS extends VerdadNoSQLDB.DBStages,
+    DBStage extends VerdadNoSQLDB.DBStage,
     >(
-      noSQLDB: VerdadNoSQLDB.Definition<T, DBS>,
+      noSQLDB: VerdadNoSQLDB.Definition<T, DBStage>,
       prefix: string,
   ): Record<string, CloudFormationSchema.TypeOf<'Resource'>> {
 
-    return _(noSQLDB.dbStages)
-      .map((dbStage): Record<string, CloudFormationSchema.TypeOf<'Resource'>> => _(noSQLDB.tables)
-        .mapValues((tableSpec, rawTableName): CloudFormationSchema.TypeOf<'Resource'> => {
+    return pipe(noSQLDB.dbStages,
+      A.map((dbStage): Record<string, CloudFormationSchema.TypeOf<'Resource'>> => pipe(noSQLDB.tables,
+        R.mapWithIndex((rawTableName, tableSpec): CloudFormationSchema.TypeOf<'Resource'> => {
           // FIXME: tableSpec is untyped
           const secondaryKeys: string[] = tableSpec.secondaryKeys ?? []
           const allKeys = secondaryKeys.concat(tableSpec.primaryKey)
@@ -188,7 +187,7 @@ export namespace VerdadCloudFormation {
             Type: 'AWS::DynamoDB::Table' as const,
             Properties: {
               // FIXME: Use same helper function that runtime logic uses
-              TableName: [prefix, dbStage, rawTableName].join('-'),
+              TableName: qualifiedTableName({ prefix, dbStage, tableName: rawTableName }),
               AttributeDefinitions: allKeys.map((key) => ({
                 AttributeName: key,
                 AttributeType: 'S' as const
@@ -204,12 +203,21 @@ export namespace VerdadCloudFormation {
               ...wrappedIfSome('GlobalSecondaryIndexes', globalSecondaryIndexes.length === 0 ? undefined : globalSecondaryIndexes)
             }
           }
-        })
-        // FIXME: Create helper function for this and identical logic above
-        .mapKeys((_, rawTableName) => [rawTableName, dbStage].join('FOR'))
-        .value()
-      )
-      .reduce((allResources, thisDBStageResources) => allResources.merge(thisDBStageResources), _({}))
-      .value()
+        }),
+        mapKeys(rawTableName => [rawTableName, dbStage].join('FOR'))
+      )),
+      A.reduce({}, (allResources, thisDBStageResources) => R.union({ concat: identity })(allResources)(thisDBStageResources)),
+    )
+  }
+
+  export function qualifiedTableName<
+    T extends VerdadNoSQLDB.NoSQLTables,
+    DBStage extends VerdadNoSQLDB.DBStage,
+    >(input: {
+      prefix: string,
+      dbStage: DBStage,
+      tableName: keyof T
+    }): string {
+    return [input.prefix, input.dbStage, input.tableName].join('-')
   }
 }

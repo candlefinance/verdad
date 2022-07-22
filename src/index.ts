@@ -1,7 +1,10 @@
 export * from './core/RESTAPI'
 export * from './core/RESTResource'
 export * from './core/NoSQLDB'
-
-export * from './core/Utilities'
 export * from './core/ExcessType'
 export * from './core/ISO'
+
+export * from './core/utilities/fp'
+export * from './core/utilities/io'
+export * from './core/utilities/logger'
+export * from './core/utilities/types'
