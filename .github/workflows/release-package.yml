@@ -1,4 +1,4 @@
-name: Create Release
+name: Release Package
 
 on:
   pull_request:
